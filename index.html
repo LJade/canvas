@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no">
+    <title>canvas领取优惠券</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #coupon {
+            display: block;
+            margin: -40px auto 0;
+            overflow: hidden;
+            width: 310px;
+            height: 365px;
+        }
+    </style>
+</head>
+<body>
+<canvas id="header">亲，您的浏览器不支持canvas，要换新了哦</canvas>
+<canvas id="coupon" width="310" height="365">亲，您的浏览器不支持canvas，要换新了哦</canvas>
+</body>
+<script>
+    var dpr = window.devicePixelRatio || 1
+    window.onload = function () {
+        // 头部banner使用image源在canvas画布画出
+        var header = document.getElementById('header');
+        var header_cxt = header.getContext('2d');
+        header.width = document.body.clientWidth;
+        header.height = 266;
+        var image = new Image();
+        image.src = 'header.png';
+        image.onload = function () {
+            image.width = header.width;
+            image.height = header.height;
+            header_cxt.drawImage(image, 0, 0, image.width, image.height)
+        };
+        // 红包canvas
+        var canvas = document.getElementById('coupon');
+        canvas.width = dpr * canvas.width;
+        canvas.height = dpr * canvas.height;
+        var cxt = canvas.getContext('2d');
+        cxt.setTransform(dpr, 0, 0, dpr, 0, 0);
+        // 绘制红包大的圆角矩形，并设置过渡背景色
+        drawRoundRect(cxt, 0, 0, 310, 365, 25);
+
+        // 绘制使用地点
+        cxt.save();
+        cxt.textAlign = 'center';
+        cxt.textBaseline = 'middle';
+        cxt.font = '16px 微软雅黑';
+        cxt.fillStyle = '#c64c38';
+        cxt.fillText('限开心人大药房使用', 155, 20, 200);
+        cxt.restore();
+
+        // 绘制优惠券折角
+        cxt.beginPath();
+        cxt.rect(35, 40, 240, 45);
+        cxt.fillStyle = '#fbe446';
+        cxt.fill();
+        cxt.closePath();
+        cxt.textAlign = 'center';
+        cxt.font = '20px 微软雅黑';
+        cxt.fillStyle = '#ecaa00';
+        cxt.fillText('优惠券', 155, 70, 200);
+        var xStart = 25;
+        for (var i = 0; i < 12; i++) {
+            xStart += 20;
+            drawCircle(cxt, 6, xStart, 40, '#f87b5b');
+        }
+        drawDashLine(cxt, 35, 85, 240);
+
+        // 绘制优惠金额和期限区域
+        drawPriceArea(cxt);
+        drawCircle(cxt, 10, 35, 85, '#f87b5b');
+        drawCircle(cxt, 10, 275, 85, '#f87b5b');
+        drawTriangle(cxt, 0, 163, 35, 163, 35, 171, '#c64c38');
+        drawTriangle(cxt, 275, 163, 310, 163, 275, 171, '#c64c38');
+
+        // 绘制公司图片
+        cxt.save();
+        cxt.translate(95, 160);
+        pathRoundRect(cxt, 120, 40, 15);
+        cxt.fillStyle = '#feda2e';
+        cxt.lineWidth = 3;
+        cxt.fill();
+        cxt.strokeStyle = 'rgba(255,168,23,0.7)';
+        cxt.stroke();
+        cxt.fillStyle = '#ecaa00';
+        cxt.font = '21px bold arial';
+        cxt.fillText('大众品药', 18, 28);
+        cxt.restore();
+
+        // 绘制输入框
+        cxt.save();
+        cxt.translate(35, 220);
+        pathRoundRect(cxt, 240, 45, 12);
+        cxt.fillStyle = '#e95436';
+        cxt.fill();
+        cxt.fillStyle = '#ca3e22';
+        cxt.font = '18px 微软雅黑';
+        cxt.fillText('输入手机号领取', 58, 30);
+        cxt.restore();
+
+        // 绘制按钮
+        cxt.save();
+        cxt.translate(95, 280);
+        pathRoundRect(cxt, 120, 35, 5);
+        cxt.fillStyle = '#fce43c';
+        cxt.fill();
+        cxt.fillStyle = '#bb6e05';
+        cxt.font = '18px 微软雅黑';
+        cxt.fillText('立即领取', 25, 25);
+        cxt.restore();
+
+        // 绘制规则文字
+        cxt.fillStyle = '#e94423';
+        cxt.font = '16px 微软雅黑';
+        cxt.fillText('查看优惠券使用规则', 83, 350);
+
+
+        /*
+         // 辅助线
+         cxt.beginPath();
+         cxt.moveTo(155,0);
+         cxt.lineTo(155,365);
+         cxt.strokeStyle = '#000000';
+         cxt.stroke();
+         cxt.closePath()*/
+
+
+    };
+
+    function drawRoundRect(cxt, x, y, width, height, radius) {
+        cxt.save();
+        cxt.translate(x, y);
+        pathRoundRect(cxt, width, height, radius);
+
+        var linearGrad = cxt.createLinearGradient(0, 0, 0, 365);
+        linearGrad.addColorStop(0.45, '#f87b5b');
+        linearGrad.addColorStop(0.45, '#fe6748');
+        linearGrad.addColorStop(1.0, '#fe6748');
+        cxt.fillStyle = linearGrad;
+        cxt.fill();
+
+        cxt.strokeStyle = '#f87b5b';
+        cxt.stroke();
+        cxt.restore();
+    }
+    function pathRoundRect(cxt, width, height, radius) {
+        cxt.beginPath();
+        cxt.arc(width - radius, height - radius, radius, 0, Math.PI / 2);
+        cxt.lineTo(radius, height);
+        cxt.arc(radius, height - radius, radius, Math.PI / 2, Math.PI);
+        cxt.lineTo(0, radius);
+        cxt.arc(radius, radius, radius, Math.PI, Math.PI * 3 / 2);
+        cxt.lineTo(width - radius, 0);
+        cxt.arc(width - radius, radius, radius, Math.PI * 3 / 2, Math.PI * 2);
+        cxt.closePath();
+    }
+    function drawCircle(cxt, r, centerX, centerY, color) {
+        cxt.beginPath();
+        cxt.arc(centerX, centerY, r, 0, Math.PI * 360);
+        cxt.fillStyle = color;
+        cxt.fill();
+        cxt.closePath();
+    }
+    function drawDashLine(cxt, sx, sy, width) {
+        cxt.beginPath();
+        cxt.moveTo(sx, sy);
+        cxt.setLineDash([6, 6])
+        cxt.lineTo(sx + width, sy)
+        cxt.strokeStyle = '#e95436';
+        cxt.lineWidth = 2;
+        cxt.stroke();
+        cxt.closePath()
+    }
+    function drawPriceArea(cxt) {
+        cxt.save();
+        cxt.beginPath();
+        cxt.moveTo(35, 86);
+        cxt.lineTo(275, 86);
+        cxt.lineTo(275, 172);
+        cxt.lineTo(155, 192);
+        cxt.lineTo(35, 172);
+        cxt.closePath();
+        cxt.fillStyle = '#fdffda';
+        cxt.fill();
+        cxt.restore();
+
+        cxt.save();
+        cxt.font = '20px 微软雅黑';
+        cxt.fillStyle = '#fe6748';
+        cxt.fillText('￥', 50, 140, 200);
+        cxt.font = '48px bold 微软雅黑';
+        cxt.fillText('20', 85, 140, 200);
+        cxt.restore();
+
+        cxt.beginPath();
+        cxt.moveTo(126, 95);
+        cxt.lineTo(126, 150);
+        cxt.closePath();
+        cxt.setLineDash([]);
+        cxt.strokeStyle = '#f87b5b';
+        cxt.stroke();
+
+        cxt.font = '14px 微软雅黑';
+        cxt.fillStyle = '#f87b5b';
+        cxt.textAlign = 'left';
+        cxt.fillText('满50元可用', 140, 120);
+        cxt.fillText('有效期至:2018.01.01', 140, 140, 150);
+    }
+    function drawTriangle(cxt, x1, y1, x2, y2, x3, y3, color) {
+        cxt.beginPath();
+        cxt.moveTo(x1, y1);
+        cxt.lineTo(x2, y2);
+        cxt.lineTo(x3, y3);
+        cxt.closePath();
+        cxt.fillStyle = color;
+        cxt.fill();
+    }
+
+</script>
+</html>
